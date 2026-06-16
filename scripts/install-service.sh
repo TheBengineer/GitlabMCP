@@ -122,7 +122,7 @@ cp "${SCRIPT_DIR}/scripts/${SERVICE_FILE}" "${SERVICE_TARGET}"
 # The service file uses %i for the user, but we use a fixed user so
 # replace the specifier with the actual user name
 sed -i "s/User=%i/User=${SERVICE_USER}/" "${SERVICE_TARGET}"
-sed -i "s/ExecStart=.*/ExecStart=${INSTALL_DIR}\/.venv\/bin\/python -m gitlab_mcp --transport streamable-http --host ${MCP_HOST} --port ${MCP_PORT}/" "${SERVICE_TARGET}"
+sed -i "s|ExecStart=.*|ExecStart=${INSTALL_DIR}/.venv/bin/python -m gitlab_mcp --transport streamable-http --host ${MCP_HOST} --port ${MCP_PORT}|" "${SERVICE_TARGET}"
 echo "  ✓ Installed systemd service"
 
 # --- Set ownership ---
