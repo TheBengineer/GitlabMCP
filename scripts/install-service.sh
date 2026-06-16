@@ -29,6 +29,18 @@ if ! command -v python3 &>/dev/null; then
     exit 1
 fi
 
+if ! command -v rsync &>/dev/null; then
+    echo "ERROR: rsync is required but not found." >&2
+    echo "  Install: apt install rsync  (or: yum install rsync)" >&2
+    exit 1
+fi
+
+if ! python3 -c "import venv" &>/dev/null; then
+    echo "ERROR: Python venv module is not available." >&2
+    echo "  Install: apt install python3-venv  (or: yum install python3-venv)" >&2
+    exit 1
+fi
+
 if ! command -v systemctl &>/dev/null; then
     echo "ERROR: systemctl is required (systemd not detected)." >&2
     exit 1
