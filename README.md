@@ -5,8 +5,12 @@ A [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server that w
 ## Quick Start
 
 ```bash
-# Install
-pip install gitlab-mcp
+# Clone and install
+git clone https://github.com/TheBengineer/GitlabMCP.git
+cd GitlabMCP
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e .
 
 # Set your GitLab token
 export GITLAB_TOKEN="your_personal_access_token"
