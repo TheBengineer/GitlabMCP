@@ -47,7 +47,10 @@ if ! command -v systemctl &>/dev/null; then
 fi
 
 # --- Gather configuration ---
-GITLAB_URL="${GITLAB_URL:-https://gitlab.com}"
+if [[ -z "${GITLAB_URL:-}" ]]; then
+    read -rp "GitLab instance URL [https://gitlab.com]: " GITLAB_URL
+    GITLAB_URL="${GITLAB_URL:-https://gitlab.com}"
+fi
 
 if [[ -z "${GITLAB_TOKEN:-}" ]]; then
     read -rsp "Enter your GitLab Personal Access Token: " GITLAB_TOKEN

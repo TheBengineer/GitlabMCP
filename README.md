@@ -238,13 +238,28 @@ The server supports the following GitLab authentication methods:
 
 ## Self-Managed GitLab
 
-Configure for self-managed instances:
+The install script prompts for the GitLab instance URL:
+
+```bash
+sudo ./scripts/install-service.sh
+# GitLab instance URL [https://gitlab.com]: https://gitlab.internal.company.com
+```
+
+Or pass it non-interactively:
+
+```bash
+sudo GITLAB_URL="https://gitlab.internal.company.com" GITLAB_TOKEN=glpat-xxx ./scripts/install-service.sh
+```
+
+Additional self-managed config via environment variables:
 
 ```bash
 export GITLAB_URL="https://gitlab.internal.company.com"
 export GITLAB_SSL_VERIFY="false"       # For self-signed certs
 export GITLAB_PROXY_URL="http://proxy:8080"  # For proxied environments
 ```
+
+The server reads `GITLAB_URL` at startup — nothing is hardcoded beyond the default value.
 
 ## License
 
