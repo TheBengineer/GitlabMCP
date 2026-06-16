@@ -1,4 +1,8 @@
 .omo
 .opencode
 .venv
+__pycache__/
+*.pyc
+*.egg-info/
+.env
 
