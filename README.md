@@ -53,6 +53,7 @@ The server exposes **21 MCP tools** across 5 domains:
 | Tool | Description | Safe |
 |---|---|---|
 | `get_project` | Get project details by ID or path | ✅ Read-only |
+| `list_projects` | List all accessible projects | ✅ Read-only |
 | `search_projects` | Search projects by name/description | ✅ Read-only |
 | `list_project_issues` | List issues for a project | ✅ Read-only |
 | `list_project_merge_requests` | List MRs for a project | ✅ Read-only |

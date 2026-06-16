@@ -35,6 +35,35 @@ def register_tools(mcp: FastMCP, client: GitLabClient) -> None:
         )
 
     @mcp.tool(
+        name="list_projects",
+        description="List all GitLab projects the authenticated user has access to.",
+        annotations=ToolAnnotations(readOnlyHint=True, idempotentHint=True, destructiveHint=False),
+    )
+    async def list_projects(per_page: int = 20, archived: bool = False) -> str:
+        """List all GitLab projects accessible to the authenticated user.
+
+        Args:
+            per_page: Number of results per page (max 100).
+            archived: Whether to include archived projects.
+        """
+        data = await client.get(
+            "/projects",
+            params={"per_page": min(per_page, 100), "archived": "true" if archived else "false"},
+        )
+        if not data:
+            return "No projects found."
+        assert isinstance(data, list)
+        lines = [f"Projects ({len(data)} shown):"]
+        for item in data:
+            name = item.get("name_with_namespace", item.get("name", "?"))
+            url = item.get("web_url", "?")
+            visibility = item.get("visibility", "")
+            vis = f" ({visibility})" if visibility else ""
+            lines.append(f"  \u2022 {name}{vis}")
+            lines.append(f"       {url}")
+        return "\n".join(lines)
+
+    @mcp.tool(
         name="search_projects",
         description="Search GitLab projects by name or description.",
         annotations=ToolAnnotations(readOnlyHint=True, idempotentHint=True, destructiveHint=False),

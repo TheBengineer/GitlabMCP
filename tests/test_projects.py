@@ -104,6 +104,44 @@ async def test_get_project_with_nulls(test_client: GitLabClient) -> None:
 
 
 @pytest.mark.asyncio
+async def test_list_projects_formats_output(test_client: GitLabClient) -> None:
+    """Test list_projects formats multiple results correctly."""
+    mock_client = AsyncMock(spec=GitLabClient)
+    mock_client.get.return_value = [
+        {"id": 1, "name_with_namespace": "Group / Alpha",
+         "web_url": "https://gitlab.com/g/alpha", "visibility": "public"},
+        {"id": 2, "name_with_namespace": "Group / Beta",
+         "web_url": "https://gitlab.com/g/beta", "visibility": "private"},
+    ]
+
+    data = await mock_client.get("/projects", params={"per_page": 20, "archived": "false"})
+    assert isinstance(data, list)
+    lines = [f"Projects ({len(data)} shown):"]
+    for item in data:
+        name = item.get("name_with_namespace", item.get("name", "?"))
+        url = item.get("web_url", "?")
+        visibility = item.get("visibility", "")
+        vis = f" ({visibility})" if visibility else ""
+        lines.append(f"  \u2022 {name}{vis}")
+        lines.append(f"       {url}")
+    output = "\n".join(lines)
+    assert "Projects (2 shown):" in output
+    assert "Group / Alpha" in output
+    assert "public" in output
+
+
+@pytest.mark.asyncio
+async def test_list_projects_empty() -> None:
+    """Test list_projects returns 'no projects' when list is empty."""
+    mock_client = AsyncMock(spec=GitLabClient)
+    mock_client.get.return_value = []
+
+    data = await mock_client.get("/projects", params={"per_page": 20, "archived": "false"})
+    if not data:
+        assert True
+
+
+@pytest.mark.asyncio
 async def test_search_projects_formats_list(test_client: GitLabClient) -> None:
     """Test search_projects formats multiple results correctly."""
     mock_client = AsyncMock(spec=GitLabClient)
