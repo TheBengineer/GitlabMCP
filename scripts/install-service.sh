@@ -49,7 +49,7 @@ fi
 GITLAB_READ_ONLY="${GITLAB_READ_ONLY:-false}"
 GITLAB_MAX_RESULTS="${GITLAB_MAX_RESULTS:-100}"
 MCP_PORT="${MCP_PORT:-8000}"
-MCP_HOST="${MCP_HOST:-127.0.0.1}"
+MCP_HOST="${MCP_HOST:-0.0.0.0}"
 
 echo ""
 echo "── Installing GitLab MCP Server ──"

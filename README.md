@@ -203,7 +203,7 @@ Error codes: `AUTH_FAILED`, `FORBIDDEN`, `NOT_FOUND`, `RATE_LIMITED`, `API_ERROR
 
 ## Systemd Service
 
-Install as a systemd service (runs streamable-http on `127.0.0.1:8000`):
+Install as a systemd service (runs streamable-http on `0.0.0.0:8000`):
 
 ```bash
 # Interactive (prompts for GitLab token)
@@ -225,7 +225,7 @@ After install:
 ```bash
 systemctl status gitlab-mcp
 journalctl -u gitlab-mcp -f
-# MCP endpoint: http://127.0.0.1:8000/mcp
+# MCP endpoint: http://0.0.0.0:8000/mcp
 ```
 
 ## Authentication
