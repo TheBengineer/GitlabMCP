@@ -81,6 +81,8 @@ rsync -a --delete \
     --exclude='.opencode' \
     --exclude='.gitignore' \
     "${SCRIPT_DIR}/src/" "${INSTALL_DIR}/src/"
+# Copy pyproject.toml needed for pip install (editable install looks at package root)
+cp "${SCRIPT_DIR}/pyproject.toml" "${INSTALL_DIR}/pyproject.toml"
 echo "  ✓ Copied source files"
 
 # --- Set up virtual environment ---
