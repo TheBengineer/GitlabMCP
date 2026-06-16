@@ -201,6 +201,33 @@ Error codes: `AUTH_FAILED`, `FORBIDDEN`, `NOT_FOUND`, `RATE_LIMITED`, `API_ERROR
 - **stdio** (default) — for local MCP clients (Claude Desktop, Cursor, etc.)
 - **streamable-http** (opt-in) — for remote deployment, supports ASGI mounting
 
+## Systemd Service
+
+Install as a systemd service (runs streamable-http on `127.0.0.1:8000`):
+
+```bash
+# Interactive (prompts for GitLab token)
+sudo ./scripts/install-service.sh
+
+# Non-interactive
+sudo GITLAB_TOKEN=glpat-xxx ./scripts/install-service.sh
+```
+
+The script:
+1. Creates a `gitlab-mcp` system user
+2. Installs to `/opt/gitlab-mcp/` with an isolated venv
+3. Writes `.env` with restricted permissions (600)
+4. Installs and enables the systemd service
+5. Hardens the service with `NoNewPrivileges`, `PrivateTmp`, `ProtectSystem=strict`
+
+After install:
+
+```bash
+systemctl status gitlab-mcp
+journalctl -u gitlab-mcp -f
+# MCP endpoint: http://127.0.0.1:8000/mcp
+```
+
 ## Authentication
 
 The server supports the following GitLab authentication methods:
