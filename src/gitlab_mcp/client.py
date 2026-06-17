@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 from typing import Any, cast
 from urllib.parse import parse_qs, urlparse  # noqa: F401
 
@@ -11,6 +12,8 @@ import httpx
 from gitlab_mcp.auth import AuthProvider, EnvAuthProvider
 from gitlab_mcp.config import GitLabSettings
 from gitlab_mcp.errors import GitLabApiError, GitLabError
+
+log = logging.getLogger(__name__)
 
 
 class GitLabClient:
@@ -50,16 +53,23 @@ class GitLabClient:
         self, method: str, path: str, **kwargs: Any
     ) -> httpx.Response:
         """Make HTTP request with rate limit retry and error handling."""
+        effective_url = str(self._client.base_url).rstrip("/") + "/" + path.lstrip("/")
+        log.debug("→ %s %s  params=%s", method, effective_url, kwargs.get("params", ""))
+
         resp = await self._client.request(method, path, **kwargs)
+        log.debug("← %s %s  %s", method, effective_url, resp.status_code)
 
         # Rate limit: retry once after Retry-After delay
         if resp.status_code == 429:
             retry_after = int(resp.headers.get("Retry-After", "5"))
+            log.warning("Rate limited (429), retrying after %ss", retry_after)
             await asyncio.sleep(retry_after)
             resp = await self._client.request(method, path, **kwargs)
+            log.info("Retry %s %s  → %s", method, effective_url, resp.status_code)
 
         # Error handling
         if resp.status_code == 401:
+            log.error("Auth failed — check GITLAB_TOKEN (URL: %s)", effective_url)
             raise GitLabApiError(
                 error=GitLabError(
                     code="AUTH_FAILED",
@@ -69,6 +79,7 @@ class GitLabClient:
                 )
             )
         elif resp.status_code == 403:
+            log.error("Forbidden — insufficient scopes (URL: %s)", effective_url)
             raise GitLabApiError(
                 error=GitLabError(
                     code="FORBIDDEN",
@@ -78,15 +89,18 @@ class GitLabClient:
                 )
             )
         elif resp.status_code == 404:
+            log.error("Not found (URL: %s) — check the base URL and resource path", effective_url)
             raise GitLabApiError(
                 error=GitLabError(
                     code="NOT_FOUND",
                     message=f"Resource not found: {path}",
-                    recovery="Verify the resource ID or path exists.",
+                    recovery="Verify the resource ID or path exists. "
+                    "If self-managed, check that GITLAB_URL is set correctly.",
                     status_code=404,
                 )
             )
         elif resp.status_code == 429:
+            log.warning("Rate limited, retry_after=%s", retry_after)
             raise GitLabApiError(
                 error=GitLabError(
                     code="RATE_LIMITED",
@@ -97,6 +111,7 @@ class GitLabClient:
                 )
             )
         elif resp.status_code >= 400:
+            log.error("API error %s (URL: %s)", resp.status_code, effective_url)
             raise GitLabApiError(
                 error=GitLabError(
                     code="API_ERROR",

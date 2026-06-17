@@ -17,3 +17,4 @@ class GitLabSettings(BaseSettings):
     read_only: bool = False
     tool_allowlist: str = ""
     tool_denylist: str = ""
+    log_level: str = "INFO"

@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
-from collections.abc import AsyncIterator
+import logging
+from collections.abc import AsyncIterator, Callable
 from contextlib import asynccontextmanager
+from typing import Any
 
 from mcp.server.fastmcp import FastMCP
 
@@ -11,14 +13,26 @@ from gitlab_mcp.client import GitLabClient
 from gitlab_mcp.config import GitLabSettings
 from gitlab_mcp.tools import register_all_tools
 
+log = logging.getLogger(__name__)
 
-@asynccontextmanager
-async def server_lifespan(server: FastMCP) -> AsyncIterator[dict[str, GitLabClient]]:
-    """Manage the GitLab client lifecycle — connect on start, close on shutdown."""
-    settings = GitLabSettings()
-    client = GitLabClient(settings)
-    async with client:
-        yield {"client": client}
+
+def _make_lifespan(
+    settings: GitLabSettings,
+) -> Callable[..., Any]:
+    """Create a lifespan that uses the given settings."""
+
+    @asynccontextmanager
+    async def lifespan(
+        server: FastMCP,
+    ) -> AsyncIterator[dict[str, GitLabClient]]:
+        log.info("Connecting to GitLab at %s", settings.url)
+        client = GitLabClient(settings)
+        async with client:
+            log.info("GitLab client ready")
+            yield {"client": client}
+        log.info("GitLab client closed")
+
+    return lifespan
 
 
 def create_mcp_server(
@@ -39,15 +53,17 @@ def create_mcp_server(
     if settings is None:
         settings = GitLabSettings()
 
+    # Create a client instance for tool registration (tools create closures
+    # that reference this client; the lifespan creates its own client from
+    # the same settings for the runtime lifecycle).
+    client = GitLabClient(settings)
+
     mcp = FastMCP(
         "GitLab MCP",
         host=host,
         port=port,
-        lifespan=server_lifespan,
+        lifespan=_make_lifespan(settings),
     )
 
-    # Create a client for registration (tools access it via lifespan context)
-    client = GitLabClient(settings)
     register_all_tools(mcp, client, settings)
-
     return mcp
